@@ -5,12 +5,22 @@ class state {
 
 private:
 
-	int s[2][3];
+	int **s;
 
 public:
 
 	state();
+	state(int **sa);
+	~state();
+	void copy(state *stc);
+	int **getStateArray();
 	void printState();
+	bool boatLocation();
+	int getVal(int i, int j);
+	void moveChicken(bool side);
+	void moveBoat(bool side);
+	bool isLosingState();
+	void moveWolf(bool side);
 
 };
 
