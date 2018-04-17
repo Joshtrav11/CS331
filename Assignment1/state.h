@@ -6,12 +6,14 @@ class state {
 private:
 
 	int **s;
+	int id;
 
 public:
 
 	state();
 	state(int **sa);
 	~state();
+	void hash();
 	void copy(state *stc);
 	int **getStateArray();
 	void printState();
@@ -21,6 +23,7 @@ public:
 	void moveBoat(bool side);
 	bool isLosingState();
 	void moveWolf(bool side);
+	int getID();
 
 };
 
