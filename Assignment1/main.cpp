@@ -135,12 +135,18 @@ void showPath(state *s) {
 	while((s = s->getParent()) != NULL) {
 		q.push_back(s);
 	}
+	/* First item in vector is stack not heap, can't delete */
+	s = q.back();
+	q.pop_back();
+	s->printState();
+	cout << endl;
+	/* Now we can print and delete rest of vector */
 	while(!q.empty()) {
 		s = q.back();
 		q.pop_back();
 		s->printState();
 		cout << endl;
-		//delete s;
+		delete s;
 	}
 
 }
