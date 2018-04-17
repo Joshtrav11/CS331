@@ -125,6 +125,26 @@ bool contains(list <int> *visitedStates, int f) {
 	return (std::find(visitedStates->begin(), visitedStates->end(), f) != visitedStates->end());
 }
 
+void showPath(state *s) {
+
+	vector <state*> q;
+	//state *temp;
+
+	q.push_back(s);
+
+	while((s = s->getParent()) != NULL) {
+		q.push_back(s);
+	}
+	while(!q.empty()) {
+		s = q.back();
+		q.pop_back();
+		s->printState();
+		cout << endl;
+		//delete s;
+	}
+
+}
+
 void uniformedBFS(state *startState, state *goalState) {
 	
 	queue <state*> q;
@@ -132,31 +152,48 @@ void uniformedBFS(state *startState, state *goalState) {
 	vector <state*> succStates;
 	state *temp;
 	state *tempS;
+	int nodesExpanded = 0;
+	bool goalFound = false;
 
 	q.push(startState);
 
 	while(!q.empty()) {
 
-		cout << q.size() << endl;
 		temp = q.front();
-		temp->printState();
 		q.pop();
 
-		visitedStates.push_back(temp->getID());
-
 		if(temp->getID() == goalState->getID()) {
-			cout << "Found the goal state" << endl;
+			cout << "Found the goal state: " << endl;
+			showPath(temp);
+			cout << "Nodes expanded: " << nodesExpanded << endl;
+			cout << endl;
+			goalFound = true;
+
+			while(!q.empty()) {
+				temp = q.front();
+				q.pop();
+				delete temp;
+			}
+
 		}
 		else {
+			nodesExpanded++;
 			succ(temp, &succStates);
 			while(!succStates.empty()){
-				tempS = succStates.front();
+				tempS = succStates.back();
 				succStates.pop_back();
 				if(!contains(&visitedStates, tempS->getID())) {
+					visitedStates.push_back(tempS->getID());
+					tempS->setParent(temp);
 					q.push(tempS);
 				}
+				else
+					delete tempS;
 			}
 		}
+	}
+	if(!goalFound) {
+		cout << "No solution found" << endl;
 	}
 }
 
@@ -174,14 +211,6 @@ int main(int argc, char **argv) {
 
 	state ss(startStateArray), gs(goalStateArray);
 	uniformedBFS(&ss, &gs);
-	vector <state*> succStates;
-
-	succ(&ss, &succStates);
-	//cout << succStates.size() << endl;
-	//succStates[0]->hash();
-
-	for(int i = 0; i< succStates.size(); ++i)
-		delete succStates[i];
 
 	for(int i = 0; i < 2; ++i)
    		delete [] startStateArray[i];

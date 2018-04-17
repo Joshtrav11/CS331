@@ -7,6 +7,7 @@ private:
 
 	int **s;
 	int id;
+	state *parent;
 
 public:
 
@@ -24,6 +25,8 @@ public:
 	bool isLosingState();
 	void moveWolf(bool side);
 	int getID();
+	void setParent(state *p);
+	state *getParent();
 
 };
 

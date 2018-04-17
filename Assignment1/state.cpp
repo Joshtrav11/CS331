@@ -16,6 +16,8 @@ state::state() {
 	s[1][1] = 0;
 	s[1][2] = 0;
 
+	parent = NULL;
+
 	hash();
 
 }
@@ -33,6 +35,8 @@ state::state(int **sa) {
 	s[1][1] = sa[1][1];
 	s[1][2] = sa[1][2];
 
+	parent = NULL;
+
 	hash();
 
 }
@@ -46,6 +50,8 @@ state::~state() {
 
 void state::hash() {
 
+	id = 0;
+
 	int total = 0;
 	int k = 0;
 	for(int i = 0; i < 2; i++) {
@@ -54,6 +60,7 @@ void state::hash() {
 			k++;
 		}
 	}
+	id = total;
 
 }
 
@@ -131,4 +138,12 @@ void state::moveWolf(bool side) {
 
 int state::getID() {
 	return id;
+}
+
+void state::setParent(state *p) {
+	parent = p;
+}
+
+state *state::getParent() {
+	return parent;
 }
