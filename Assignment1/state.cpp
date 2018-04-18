@@ -1,6 +1,7 @@
 #include <iostream>
 #include <functional>
 #include <math.h>
+#include <fstream>
 #include "state.h"
 
 state::state() {
@@ -17,6 +18,8 @@ state::state() {
 	s[1][2] = 0;
 
 	parent = NULL;
+
+	depth = 0;
 
 	hash();
 
@@ -36,6 +39,8 @@ state::state(int **sa) {
 	s[1][2] = sa[1][2];
 
 	parent = NULL;
+
+	depth = 0;
 
 	hash();
 
@@ -75,6 +80,9 @@ void state::copy(state *stc) {
 	s[1][1] = sa[1][1];
 	s[1][2] = sa[1][2];
 
+	parent = stc->getParent();
+	depth = stc->getDepth();
+
 	hash();
 
 }
@@ -85,6 +93,14 @@ void state::printState() {
 
 	std::cout << s[0][0] << "," << s[0][1] << "," << s[0][2] << std::endl;
 	std::cout << s[1][0]  << "," << s[1][1] << "," << s[1][2] << std::endl;
+
+}
+
+void state::printStateToFile(std::ofstream &outputFile) {
+
+	outputFile << s[0][0] << "," << s[0][1] << "," << s[0][2] << std::endl;
+	outputFile << s[1][0]  << "," << s[1][1] << "," << s[1][2] << std::endl;
+	outputFile << std::endl;
 
 }
 
@@ -141,9 +157,16 @@ int state::getID() {
 }
 
 void state::setParent(state *p) {
+	
 	parent = p;
+	depth = parent->getDepth() + 1;
+
 }
 
 state *state::getParent() {
 	return parent;
+}
+
+int state::getDepth() {
+	return depth;
 }

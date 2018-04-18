@@ -2,11 +2,13 @@
 #include <fstream>
 #include <string>
 #include <stdlib.h>
+#include <string.h>
 #include <sstream>
 #include <vector>
 #include <queue>
 #include <list>
 #include <algorithm>
+#include <stack>
 
 #include "state.h"
 
@@ -125,7 +127,10 @@ bool contains(list <int> *visitedStates, int f) {
 	return (std::find(visitedStates->begin(), visitedStates->end(), f) != visitedStates->end());
 }
 
-void showPath(state *s) {
+void showPath(state *s, char *outputFile) {
+
+	ofstream outF;
+	outF.open(outputFile);
 
 	vector <state*> q;
 	//state *temp;
@@ -139,6 +144,7 @@ void showPath(state *s) {
 	s = q.back();
 	q.pop_back();
 	s->printState();
+	s->printStateToFile(outF);
 	cout << endl;
 	/* Now we can print and delete rest of vector */
 	while(!q.empty()) {
@@ -146,12 +152,13 @@ void showPath(state *s) {
 		q.pop_back();
 		s->printState();
 		cout << endl;
+		s->printStateToFile(outF);
 		delete s;
 	}
-
+	outF.close();
 }
 
-void uniformedBFS(state *startState, state *goalState) {
+void uniformedBFS(state *startState, state *goalState, char *outputFile) {
 	
 	queue <state*> q;
 	list <int> visitedStates;
@@ -169,8 +176,8 @@ void uniformedBFS(state *startState, state *goalState) {
 		q.pop();
 
 		if(temp->getID() == goalState->getID()) {
-			cout << "Found the goal state: " << endl;
-			showPath(temp);
+
+			showPath(temp, outputFile);
 			cout << "Nodes expanded: " << nodesExpanded << endl;
 			cout << endl;
 			goalFound = true;
@@ -203,6 +210,118 @@ void uniformedBFS(state *startState, state *goalState) {
 	}
 }
 
+void uniformedDFS(state *startState, state *goalState, char *outputFile) {
+	
+	stack <state*> st;
+	list <int> visitedStates;
+	vector <state*> succStates;
+	state *temp;
+	state *tempS;
+	int nodesExpanded = 0;
+	bool goalFound = false;
+
+	st.push(startState);
+
+	while(!st.empty()) {
+
+		temp = st.top();
+		st.pop();
+
+		if(temp->getID() == goalState->getID()) {
+
+			showPath(temp, outputFile);
+			cout << "Nodes expanded: " << nodesExpanded << endl;
+			cout << endl;
+			goalFound = true;
+
+			while(!st.empty()) {
+				temp = st.top();
+				st.pop();
+				delete temp;
+			}
+
+		}
+		else {
+			nodesExpanded++;
+			succ(temp, &succStates);
+			while(!succStates.empty()){
+				tempS = succStates.back();
+				succStates.pop_back();
+				if(!contains(&visitedStates, tempS->getID())) {
+					visitedStates.push_back(tempS->getID());
+					tempS->setParent(temp);
+					st.push(tempS);
+				}
+				else
+					delete tempS;
+			}
+		}
+	}
+	if(!goalFound) {
+		cout << "No solution found" << endl;
+	}
+}
+
+void uniformedIDDFS(state *startState, state *goalState, char *outputFile) {
+
+	stack <state*> st;
+	list <int> visitedStates;
+	vector <state*> succStates;
+	state *temp;
+	state *tempS;
+	bool goalFound = false;
+
+	for(int MAXIT = 0; MAXIT < 100; MAXIT++) {
+
+		st.push(startState);
+		int nodesExpanded = 0;
+		while(!st.empty()) {
+
+			temp = st.top();
+			st.pop();
+
+			if(temp->getID() == goalState->getID()) {
+
+				showPath(temp, outputFile);
+				cout << "Nodes expanded: " << nodesExpanded << endl;
+				cout << endl;
+				goalFound = true;
+
+				while(!st.empty()) {
+					temp = st.top();
+					st.pop();
+					delete temp;
+				}
+
+			}
+			else if(temp->getDepth() <= MAXIT) {
+				
+				nodesExpanded++;
+				succ(temp, &succStates);
+				while(!succStates.empty()){
+					tempS = succStates.back();
+					succStates.pop_back();
+					if(!contains(&visitedStates, tempS->getID())) {
+						visitedStates.push_back(tempS->getID());
+						tempS->setParent(temp);
+						st.push(tempS);
+					}
+					else
+						delete tempS;
+				}
+
+			}
+		}
+		while(!visitedStates.empty())
+			visitedStates.pop_back();
+		if(goalFound)
+			break;
+	}
+	if(!goalFound) {
+		cout << "No solution found" << endl;
+	}
+}
+
 int main(int argc, char **argv) {
 
 	int** startStateArray = new int*[2];
@@ -215,8 +334,16 @@ int main(int argc, char **argv) {
 	getFile(startStateArray, argv[1]);
 	getFile(goalStateArray, argv[2]);
 
-	state ss(startStateArray), gs(goalStateArray);
-	uniformedBFS(&ss, &gs);
+	//state ss(startStateArray), gs(goalStateArray);
+	state *ss = new state(startStateArray);
+	state *gs = new state(goalStateArray);
+
+	if(strncmp(argv[3],"bfs",3) == 0)
+		uniformedBFS(ss, gs, argv[4]);
+	else if(strncmp(argv[3],"dfs",3) == 0)
+		uniformedDFS(ss, gs, argv[4]);
+	else if(strncmp(argv[3],"iddfs",5) == 0)
+		uniformedIDDFS(ss, gs, argv[4]);
 
 	for(int i = 0; i < 2; ++i)
    		delete [] startStateArray[i];
