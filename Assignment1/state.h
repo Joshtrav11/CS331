@@ -33,6 +33,9 @@ public:
 	void setParent(state *p);
 	state *getParent();
 	int getDepth();
+	int setDepth(int d);
+	int heuristic(state *gs);
+	int getFValue(state *gs);
 
 };
 

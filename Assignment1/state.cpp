@@ -2,6 +2,8 @@
 #include <functional>
 #include <math.h>
 #include <fstream>
+#include <cmath>
+
 #include "state.h"
 
 state::state() {
@@ -169,4 +171,27 @@ state *state::getParent() {
 
 int state::getDepth() {
 	return depth;
+}
+
+int state::setDepth(int d) {
+	depth = d;
+}
+
+int state::heuristic(state *gs) {
+
+	int x = 0, y = 0, z = 0, a = 0, b = 0, h = 0;
+
+	x = std::abs(getVal(0,0) - gs->getVal(0,0));
+	y = std::abs(getVal(0,1) - gs->getVal(0,1));
+	a = std::abs(getVal(1,0) - gs->getVal(1,0));
+	b = std::abs(getVal(1,1) - gs->getVal(1,1));
+	z = (std::abs(getVal(0,2) - gs->getVal(0,2))) ? -2 : 1;
+
+	h = (x * 2) + (y * 2) + z;
+
+	return h;
+}
+
+int state::getFValue(state *gs) {
+	return heuristic(gs) + depth;
 }

@@ -127,26 +127,36 @@ bool contains(list <int> *visitedStates, int f) {
 	return (std::find(visitedStates->begin(), visitedStates->end(), f) != visitedStates->end());
 }
 
-void showPath(state *s, char *outputFile) {
+int containsS(vector <state*> *visitedStates, state *ss) {
+
+	int cont = -1;
+
+	for(int i = 0; i < visitedStates->size(); i++) {
+		if((*visitedStates)[i]->getID() == ss->getID()) {
+			cont = i;
+			break;
+		}
+	}
+
+	return cont;
+}
+
+void showPath(state *s, state *gs, int nodesExpanded, char *outputFile) {
 
 	ofstream outF;
 	outF.open(outputFile);
 
 	vector <state*> q;
-	//state *temp;
 
 	q.push_back(s);
 
 	while((s = s->getParent()) != NULL) {
 		q.push_back(s);
 	}
-	/* First item in vector is stack not heap, can't delete */
-	s = q.back();
-	q.pop_back();
-	s->printState();
-	s->printStateToFile(outF);
+
+	cout << "Number of States: " << q.size() << endl;
 	cout << endl;
-	/* Now we can print and delete rest of vector */
+
 	while(!q.empty()) {
 		s = q.back();
 		q.pop_back();
@@ -155,10 +165,13 @@ void showPath(state *s, char *outputFile) {
 		s->printStateToFile(outF);
 		delete s;
 	}
+
+	outF << "Nodes Expanded: " << nodesExpanded << endl;
+
 	outF.close();
 }
 
-void uniformedBFS(state *startState, state *goalState, char *outputFile) {
+void uninformedBFS(state *startState, state *goalState, char *outputFile) {
 	
 	queue <state*> q;
 	list <int> visitedStates;
@@ -177,7 +190,7 @@ void uniformedBFS(state *startState, state *goalState, char *outputFile) {
 
 		if(temp->getID() == goalState->getID()) {
 
-			showPath(temp, outputFile);
+			showPath(temp, goalState, nodesExpanded, outputFile);
 			cout << "Nodes expanded: " << nodesExpanded << endl;
 			cout << endl;
 			goalFound = true;
@@ -210,7 +223,7 @@ void uniformedBFS(state *startState, state *goalState, char *outputFile) {
 	}
 }
 
-void uniformedDFS(state *startState, state *goalState, char *outputFile) {
+void uninformedDFS(state *startState, state *goalState, char *outputFile) {
 	
 	stack <state*> st;
 	list <int> visitedStates;
@@ -229,7 +242,7 @@ void uniformedDFS(state *startState, state *goalState, char *outputFile) {
 
 		if(temp->getID() == goalState->getID()) {
 
-			showPath(temp, outputFile);
+			showPath(temp, goalState, nodesExpanded, outputFile);
 			cout << "Nodes expanded: " << nodesExpanded << endl;
 			cout << endl;
 			goalFound = true;
@@ -262,7 +275,7 @@ void uniformedDFS(state *startState, state *goalState, char *outputFile) {
 	}
 }
 
-void uniformedIDDFS(state *startState, state *goalState, char *outputFile) {
+void uninformedIDDFS(state *startState, state *goalState, char *outputFile) {
 
 	stack <state*> st;
 	list <int> visitedStates;
@@ -282,7 +295,7 @@ void uniformedIDDFS(state *startState, state *goalState, char *outputFile) {
 
 			if(temp->getID() == goalState->getID()) {
 
-				showPath(temp, outputFile);
+				showPath(temp, goalState, nodesExpanded, outputFile);
 				cout << "Nodes expanded: " << nodesExpanded << endl;
 				cout << endl;
 				goalFound = true;
@@ -322,7 +335,87 @@ void uniformedIDDFS(state *startState, state *goalState, char *outputFile) {
 	}
 }
 
+void informedAStar(state *startState, state *goalState, char *outputFile) {
+
+	vector <state*> open;
+	vector <state*> closed;
+	vector <state*> succStates;
+	state *temp;
+	state *tempS;
+	int nodesExpanded = 0;
+	bool goalFound = false;
+
+	open.push_back(startState);
+
+	while(!open.empty()) {
+
+		temp = open[0];
+		int location = 0;
+
+		for(int i = 0; i < open.size(); i++) {
+			if (open[i]->getFValue(goalState) > temp->getFValue(goalState))
+			{
+				temp = open[i];
+				location = i;
+			}
+		}
+		
+		open.erase(open.begin() + location);
+		closed.push_back(temp);
+
+		if(temp->getID() == goalState->getID()) {
+
+			showPath(temp, goalState, nodesExpanded, outputFile);
+			cout << "Nodes expanded: " << nodesExpanded << endl;
+			cout << endl;
+			goalFound = true;
+
+			while(!open.empty()) {
+				temp = open.back();
+				open.pop_back();
+				delete temp;
+			}
+
+		}
+		else {
+
+			nodesExpanded++;
+			succ(temp, &succStates);
+			while(!succStates.empty()){
+
+				tempS = succStates.back();
+				succStates.pop_back();
+				if(containsS(&closed, tempS) == -1) {
+					if(containsS(&open, tempS) == -1) {
+						tempS->setParent(temp);
+						open.push_back(tempS);
+					}
+					else {
+						state *o = open[containsS(&open, tempS)];
+						if(tempS->getDepth() < o->getDepth()) {
+							o->setDepth(tempS->getDepth());
+							o->setParent(tempS->getParent());
+						}
+					}
+				}
+				else
+					delete tempS;
+			}
+		}
+
+	}
+	
+	if(!goalFound) {
+		cout << "No solution found" << endl;
+	}
+}
+
 int main(int argc, char **argv) {
+
+	if(argc != 5) {
+		cout << "Usage: ./sheep <init_file> <goal_file> <mode> <output_file>" << endl;
+		exit(1);
+	}
 
 	int** startStateArray = new int*[2];
 	for(int i = 0; i < 2; ++i)
@@ -339,11 +432,18 @@ int main(int argc, char **argv) {
 	state *gs = new state(goalStateArray);
 
 	if(strncmp(argv[3],"bfs",3) == 0)
-		uniformedBFS(ss, gs, argv[4]);
+		uninformedBFS(ss, gs, argv[4]);
 	else if(strncmp(argv[3],"dfs",3) == 0)
-		uniformedDFS(ss, gs, argv[4]);
+		uninformedDFS(ss, gs, argv[4]);
 	else if(strncmp(argv[3],"iddfs",5) == 0)
-		uniformedIDDFS(ss, gs, argv[4]);
+		uninformedIDDFS(ss, gs, argv[4]);
+	else if(strncmp(argv[3],"astar",5) == 0)
+		informedAStar(ss, gs, argv[4]);
+	else {
+		cout << "unrecognized command" << endl;
+	}
+
+	delete gs;
 
 	for(int i = 0; i < 2; ++i)
    		delete [] startStateArray[i];
