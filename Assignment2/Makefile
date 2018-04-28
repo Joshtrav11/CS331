@@ -10,5 +10,8 @@ all: ${SRCS} ${HEADERS}
 ${OBJS}: ${SRCS}
 	${CXX} -c $(@:.o=.cpp)
 
+debug:
+	gcc -g Board.cpp OthelloBoard.cpp Player.cpp HumanPlayer.cpp GameDriver.cpp MinimaxPlayer.cpp -o othello
+
 clean:
 	rm -f *.o othello

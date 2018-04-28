@@ -36,11 +36,11 @@ public:
 	 */
     void get_move(OthelloBoard* b, int& col, int& row);
 
-    OthelloBoard *maxUtil(OthelloBoard* b);
+    OthelloBoard *maxUtil(OthelloBoard* b, char t);
 
-    OthelloBoard *minUtil(OthelloBoard* b);
+    OthelloBoard *minUtil(OthelloBoard* b, char t);
 
-    int succ(OthelloBoard* b, std::vector <OthelloBoard*> *sb);
+    int succ(OthelloBoard* b, std::vector <OthelloBoard*> *sb, char t);
 
     int utility(OthelloBoard* ts);
 
